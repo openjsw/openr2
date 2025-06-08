@@ -21,12 +21,12 @@ export async function onRequest(context) {
 
   if (isBlockedUA(ua)) return new Response("Access Denied", { status: 403 });
 
-  // 修正：每个部分都encodeURIComponent，防止路径出错
+  // 关键：params.all，而不是 params.rest
   let key;
-  if (Array.isArray(params.rest)) {
-    key = params.rest.map(part => encodeURIComponent(part)).join('/');
+  if (Array.isArray(params.all)) {
+    key = params.all.map(part => encodeURIComponent(part)).join('/');
   } else {
-    key = encodeURIComponent(params.rest);
+    key = encodeURIComponent(params.all);
   }
   if (!key) return new Response("Missing key", { status: 400 });
 
