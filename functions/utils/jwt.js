@@ -1,4 +1,5 @@
-const SECRET = 'env.jwt-secret'; // 建议改为环境变量或 .env 配置
+// functions/utils/jwt.js
+export const getSecret = env => env.JWT_SECRET;
 
 function base64urlEncode(arr) {
   return btoa(String.fromCharCode(...new Uint8Array(arr)))
@@ -10,7 +11,8 @@ function base64urlDecode(str) {
   return Uint8Array.from(atob(str), c => c.charCodeAt(0));
 }
 
-export async function sign(payload) {
+// 签发 JWT
+export async function sign(payload, secret) {
   const header = { alg: "HS256", typ: "JWT" };
   const now = Math.floor(Date.now() / 1000);
   payload = { ...payload, iat: now, exp: now + 7200 }; // 2小时
@@ -20,7 +22,7 @@ export async function sign(payload) {
   const data = `${head}.${body}`;
   const key = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(SECRET),
+    new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign", "verify"]
@@ -29,14 +31,15 @@ export async function sign(payload) {
   return `${data}.${base64urlEncode(new Uint8Array(sig))}`;
 }
 
-export async function verify(token) {
+// 校验 JWT
+export async function verify(token, secret) {
   if (!token || typeof token !== 'string') return null;
   const [head, body, sig] = token.split('.');
   if (!head || !body || !sig) return null;
   const data = `${head}.${body}`;
   const key = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(SECRET),
+    new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign", "verify"]
