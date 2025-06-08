@@ -192,7 +192,7 @@ function renderAdminPage() {
             <td>\${f.size || '-'} B</td>
             <td>\${f.expire ? new Date(f.expire).toLocaleString() : '-'}</td>
             <td>
-              <a href="/file/\${f.id}" target="_blank" class="btn" style="background:#e0e7ff;color:#222;margin-right:0.6em;">访问</a>
+              <a href="/file/\${f.id}" target="_blank" class="btn btn-link" style="background:#e0e7ff;color:#222;margin-right:0.6em;">访问</a>
               <button onclick="del('\${f.id}', this)" class="btn" style="background:#ef4444;" aria-label="删除">删除</button>
             </td>\`;
           tbody.appendChild(tr);
