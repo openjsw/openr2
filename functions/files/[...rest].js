@@ -21,11 +21,17 @@ export async function onRequest(context) {
 
   if (isBlockedUA(ua)) return new Response("Access Denied", { status: 403 });
 
-  const key = Array.isArray(params.rest) ? params.rest.join('/') : params.rest;
+  // 修正：每个部分都encodeURIComponent，防止路径出错
+  let key;
+  if (Array.isArray(params.rest)) {
+    key = params.rest.map(part => encodeURIComponent(part)).join('/');
+  } else {
+    key = encodeURIComponent(params.rest);
+  }
   if (!key) return new Response("Missing key", { status: 400 });
 
   if (method === "GET") {
-    const s3Url = buildS3Url(env, encodeURIComponent(key));
+    const s3Url = buildS3Url(env, key);
     const s3Resp = await fetch(s3Url, { method: "GET" });
     if (s3Resp.status === 404) return new Response("File not found", { status: 404 });
     const headers = new Headers(s3Resp.headers);
@@ -36,7 +42,7 @@ export async function onRequest(context) {
   if (method === "PUT") {
     const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
     if (!token || token !== env.UPLOAD_TOKEN) return new Response("Unauthorized", { status: 401 });
-    const s3Url = buildS3Url(env, encodeURIComponent(key));
+    const s3Url = buildS3Url(env, key);
     const contentType = request.headers.get("content-type") || "application/octet-stream";
     const s3Resp = await fetch(s3Url, {
       method: "PUT",
