@@ -2,7 +2,7 @@ import { verify } from '../utils/jwt';
 
 export async function onRequestPost({ request, env }) {
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-  const user = await verify(token);
+  const user = await verify(token, env.JWT_SECRET);
   if (!user || !user.admin) return Response.json({ error: '未登录或权限不足' }, { status: 401 });
 
   try {
@@ -11,7 +11,7 @@ export async function onRequestPost({ request, env }) {
 
     await env.MY_BUCKET.delete(fileId);
     await env.MY_KV.delete(`meta:${fileId}`);
-    // 顺便删短链
+    // 删除短链
     const keys = await env.MY_KV.list({ prefix: 'short:' });
     for (const k of keys.keys) {
       const v = await env.MY_KV.get(k.name);
@@ -19,6 +19,6 @@ export async function onRequestPost({ request, env }) {
     }
     return Response.json({ success: true });
   } catch (e) {
-    return Response.json({ error: '删除失败:' + e.message }, { status: 500 });
+    return Response.json({ error: '删除失败: ' + e.message }, { status: 500 });
   }
 }
